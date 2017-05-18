@@ -7,8 +7,6 @@
 #include "mersenneTwister.h"
 #include "tsp.h"
 
-#define VERSION "0.2.0"
-
 extern char* errorMessage[];
 
 void handleError(errorStatus err)
@@ -19,7 +17,7 @@ void handleError(errorStatus err)
 int main(int argc, char* argv[]) {
 	init_genrand64((unsigned long long int)time(NULL));
 	setlocale(LC_ALL, "fr_FR");
-	printf("PBM Image Compressor %s\n", VERSION);
+	printf("PBM Image Compressor\n");
 	char filepath[255];
 	if(argc > 1)
 	{
