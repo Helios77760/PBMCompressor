@@ -4,7 +4,7 @@
 #include "structures.h"
 
 errorStatus generateBestPath(analizedFile* file, unsigned long long int height, unsigned long long int width);
-unsigned long long int calculatePathLength(point* pointList, pathLengthCalcMethod);
+unsigned long long int calculatePathLength(path* p, pathLengthCalcMethod);
 void exchangePath(point* pointList, unsigned long long int index_a, unsigned long long int index_b);
 unsigned long long int acceptanceProbability(unsigned long long int pathlength_a, unsigned long long int pathlength_b, long double temp);
 errorStatus randomPath(analizedFile* file);

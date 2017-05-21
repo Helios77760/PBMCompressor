@@ -149,12 +149,13 @@ errorStatus generateBestPath(analizedFile* file, unsigned long long int height, 
 {
 
 }
-unsigned long long int calculatePathLength(point* pointList, pathLengthCalcMethod method)
+
+unsigned long long int calculatePathLength(path* p, pathLengthCalcMethod method)
 {
 	unsigned long long int pathLength = 0;
 	if(method == DISTANCE_EUCLIDIAN)
 	{
-		point* node = pointList;
+		point* node = p->pointList;
 		while(node->next)
 		{
 			pathLength+= abs(node->x - node->next->x);
@@ -163,7 +164,7 @@ unsigned long long int calculatePathLength(point* pointList, pathLengthCalcMetho
 		}
 	}else if(method == DISTANCE_REAL)
 	{
-		point* node = pointList;
+		point* node = p->pointList;
 		long double doublepath=0;
 		while(node->next)
 		{

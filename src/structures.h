@@ -14,9 +14,16 @@ typedef struct _deplacement
 {
 	long long int value;
 	unsigned long long int occurences;
+
 } deplacement;
 
-
+typedef struct _huffmann
+{
+	struct _huffmann* left;
+	struct _huffmann* right;
+	long long int value;
+	unsigned long long int occurences;
+} huffmann;
 
 typedef char byte;
 
@@ -51,6 +58,9 @@ typedef struct _analizedFile
 byte BinarySearch(deplacement* dep, long long int value, unsigned long long int length,  unsigned long long int* index);
 byte SimpleSearch(deplacement* dep, long long int value, unsigned long long int length, unsigned long long int* index);
 int comparDep(const void* a, const void* b);
+huffmann* deplacementsToHuffmannTree(deplacement* dep, unsigned long long int nbDep);
+void exploreHuffmann(huffmann* tree, char* code);
+void freeHuffmannTree(huffmann* tree);
 
 
 #endif /*PBM_COMPRESSOR_STRUCTURES_H*/

@@ -57,6 +57,16 @@ int main(int argc, char* argv[]) {
 					{
 						printf("%lld\t\t:\t%llu\n", p.depList[i].value, p.depList[i].occurences);
 					}
+					huffmann* tree = deplacementsToHuffmannTree(p.depList, p.nbDeplacements);
+					if(tree)
+					{
+						char code[1] = {'\0'};
+						exploreHuffmann(tree, code);
+						freeHuffmannTree(tree);
+					}else
+					{
+						printf("No Tree\n");
+					}
 				}
 			}else
 			{
