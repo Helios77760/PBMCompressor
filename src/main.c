@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 					node = node->next;
 				}while(node);
 				path p;
-				err = fileToPath(&file, SPACE_OPTIMIZING, &p);
+				err = generateBestPath(&file, &p);
 				handleError(err);
 				if(p.depList)
 				{
@@ -61,8 +61,16 @@ int main(int argc, char* argv[]) {
 					if(tree)
 					{
 						char code[1] = {'\0'};
-						exploreHuffmann(tree, code);
+						unsigned long long int expectedLength=0;
+						exploreHuffmann(tree, code, &expectedLength);
 						freeHuffmannTree(tree);
+						qsort(p.depList, p.nbDeplacements, sizeof(deplacement), comparOcc);
+						unsigned long long int easyLength = 0;
+						for(unsigned long long int i=0; i < p.nbDeplacements; ++i)
+						{
+							easyLength += p.depList[i].occurences * i;
+						}
+						printf("\nHuffman tree real length : %llu\nEasy length : %llu", expectedLength, easyLength);
 					}else
 					{
 						printf("No Tree\n");

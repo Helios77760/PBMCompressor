@@ -27,7 +27,7 @@ typedef struct _huffmann
 
 typedef char byte;
 
-typedef enum {NO_ERROR=0, INVALID_FILE=1, ALLOC_ERROR=2} errorStatus;
+typedef enum {NO_ERROR=0, INVALID_FILE=1, ALLOC_ERROR=2, UNKNOWN_ERROR=3} errorStatus;
 
 typedef enum {DISTANCE_EUCLIDIAN, DISTANCE_REAL, SPACE_OPTIMIZING} pathLengthCalcMethod;
 
@@ -40,6 +40,7 @@ typedef struct _path
 	deplacement* depList;
 	unsigned long long int nbDeplacements;
 	unsigned long long int pathLength;
+	unsigned long long int nbPoints;
 }path ;
 
 typedef struct _analizedFile
@@ -58,8 +59,9 @@ typedef struct _analizedFile
 byte BinarySearch(deplacement* dep, long long int value, unsigned long long int length,  unsigned long long int* index);
 byte SimpleSearch(deplacement* dep, long long int value, unsigned long long int length, unsigned long long int* index);
 int comparDep(const void* a, const void* b);
+int comparOcc(const void* a, const void* b);
 huffmann* deplacementsToHuffmannTree(deplacement* dep, unsigned long long int nbDep);
-void exploreHuffmann(huffmann* tree, char* code);
+void exploreHuffmann(huffmann* tree, char* code, unsigned long long int* expectedLength);
 void freeHuffmannTree(huffmann* tree);
 
 

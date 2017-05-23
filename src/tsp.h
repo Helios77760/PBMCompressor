@@ -3,10 +3,11 @@
 
 #include "structures.h"
 
-errorStatus generateBestPath(analizedFile* file, unsigned long long int height, unsigned long long int width);
+errorStatus updateDeplacements(path* p, unsigned long long int index_a, unsigned long long int index_b);
+errorStatus generateBestPath(analizedFile* file, path* p);
 unsigned long long int calculatePathLength(path* p, pathLengthCalcMethod);
 void exchangePath(point* pointList, unsigned long long int index_a, unsigned long long int index_b);
-unsigned long long int acceptanceProbability(unsigned long long int pathlength_a, unsigned long long int pathlength_b, long double temp);
+unsigned long long int acceptanceProbability(unsigned long long int pathlength, unsigned long long int newpathlength, long double temp);
 errorStatus randomPath(analizedFile* file);
 errorStatus identifyFirstAndLast(analizedFile* file);
 errorStatus getOccurences(path* p);
