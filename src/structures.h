@@ -10,12 +10,12 @@ typedef struct _point
 	struct _point* next;
 } point;
 
-typedef struct _deplacement
+typedef struct _occdep
 {
 	long long int value;
 	unsigned long long int occurences;
 
-} deplacement;
+} occdep;
 
 typedef struct _huffmann
 {
@@ -37,10 +37,14 @@ typedef struct _path
 {
 	point* pointList;
 	pathLengthCalcMethod method;
-	deplacement* depList;
-	unsigned long long int nbDeplacements;
+	occdep* occDepList;
+	unsigned long long int nbOccDep;
 	unsigned long long int pathLength;
 	unsigned long long int nbPoints;
+	long long int * depList;
+	unsigned long long int nbDep;
+	unsigned long long int occDepListCapacity;
+	unsigned long long int depListCapacity;
 }path ;
 
 typedef struct _analizedFile
@@ -56,11 +60,12 @@ typedef struct _analizedFile
 
 } analizedFile;
 
-byte BinarySearch(deplacement* dep, long long int value, unsigned long long int length,  unsigned long long int* index);
-byte SimpleSearch(deplacement* dep, long long int value, unsigned long long int length, unsigned long long int* index);
-int comparDep(const void* a, const void* b);
+byte BinarySearch(occdep* dep, long long int value, unsigned long long int length, unsigned long long int* index);
+byte SimpleSearch(occdep* dep, long long int value, unsigned long long int length, unsigned long long int* index);
+int comparOccValue(const void *a, const void *b);
 int comparOcc(const void* a, const void* b);
-huffmann* deplacementsToHuffmannTree(deplacement* dep, unsigned long long int nbDep);
+int comparDep(const void* a, const void* b);
+huffmann* deplacementsToHuffmannTree(occdep* dep, unsigned long long int nbDep);
 void exploreHuffmann(huffmann* tree, char* code, unsigned long long int* expectedLength);
 void freeHuffmannTree(huffmann* tree);
 

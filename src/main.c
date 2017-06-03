@@ -49,26 +49,26 @@ int main(int argc, char* argv[]) {
 				path p;
 				err = generateBestPath(&file, &p);
 				handleError(err);
-				if(p.depList)
+				if(p.occDepList)
 				{
-					printf("Deplacements : %llu \n", p.nbDeplacements);
-					//qsort(p.depList, p.nbDeplacements, sizeof(deplacement), comparDep);
-					for(unsigned long long int i =0; i < p.nbDeplacements; i++)
+					printf("Deplacements : %llu \n", p.nbOccDep);
+					//qsort(p.occDepList, p.nbOccDep, sizeof(occdep), comparOccValue);
+					for(unsigned long long int i =0; i < p.nbOccDep; i++)
 					{
-						printf("%lld\t\t:\t%llu\n", p.depList[i].value, p.depList[i].occurences);
+						printf("%lld\t\t:\t%llu\n", p.occDepList[i].value, p.occDepList[i].occurences);
 					}
-					huffmann* tree = deplacementsToHuffmannTree(p.depList, p.nbDeplacements);
+					huffmann* tree = deplacementsToHuffmannTree(p.occDepList, p.nbOccDep);
 					if(tree)
 					{
 						char code[1] = {'\0'};
 						unsigned long long int expectedLength=0;
 						exploreHuffmann(tree, code, &expectedLength);
 						freeHuffmannTree(tree);
-						qsort(p.depList, p.nbDeplacements, sizeof(deplacement), comparOcc);
+						qsort(p.occDepList, p.nbOccDep, sizeof(occdep), comparOcc);
 						unsigned long long int easyLength = 0;
-						for(unsigned long long int i=0; i < p.nbDeplacements; ++i)
+						for(unsigned long long int i=0; i < p.nbOccDep; ++i)
 						{
-							easyLength += p.depList[i].occurences * i;
+							easyLength += p.occDepList[i].occurences * i;
 						}
 						printf("\nHuffman tree real length : %llu\nEasy length : %llu", expectedLength, easyLength);
 					}else

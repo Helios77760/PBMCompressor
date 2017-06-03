@@ -5,7 +5,7 @@
 
 const char* errorMessage[] = {"\nPas d'erreur\n", "\nFichier invalide\n", "\nErreur d'allocation\n", "\nErreur inconnue\n", "", "", ""};
 
-byte BinarySearch(deplacement* dep, long long int value, unsigned long long int length,  unsigned long long int* index)
+byte BinarySearch(occdep* dep, long long int value, unsigned long long int length,  unsigned long long int* index)
 {
 	*index = 0;
 	if(dep && length)
@@ -27,7 +27,7 @@ byte BinarySearch(deplacement* dep, long long int value, unsigned long long int 
 	}
 	return 0;
 }
-byte SimpleSearch(deplacement* dep, long long int value, unsigned long long int length, unsigned long long int* index)
+byte SimpleSearch(occdep* dep, long long int value, unsigned long long int length, unsigned long long int* index)
 {
 	*index=0;
 	if(dep && length)
@@ -46,25 +46,33 @@ byte SimpleSearch(deplacement* dep, long long int value, unsigned long long int 
 	return 0;
 }
 
-int comparDep(const void* a, const void* b)
+int comparOccValue(const void *a, const void *b)
 {
-	if(((deplacement*)a)->value < ((deplacement*)b)->value) return -1;
-	if(((deplacement*)a)->value == ((deplacement*)b)->value) return 0;
-	if(((deplacement*)a)->value > ((deplacement*)b)->value) return 1;
+	if(((occdep*)a)->value < ((occdep*)b)->value) return -1;
+	if(((occdep*)a)->value == ((occdep*)b)->value) return 0;
+	if(((occdep*)a)->value > ((occdep*)b)->value) return 1;
 }
 
 int comparOcc(const void* a, const void* b)
 {
-	if(((deplacement*)a)->occurences < ((deplacement*)b)->occurences) return -1;
-	if(((deplacement*)a)->occurences == ((deplacement*)b)->occurences) return 0;
-	if(((deplacement*)a)->occurences > ((deplacement*)b)->occurences) return 1;
+	if(((occdep*)a)->occurences < ((occdep*)b)->occurences) return -1;
+	if(((occdep*)a)->occurences == ((occdep*)b)->occurences) return 0;
+	if(((occdep*)a)->occurences > ((occdep*)b)->occurences) return 1;
 }
 
-int comparDepDec(const void* a, const void* b)
+int comparOccValueDec(const void* a, const void* b)
 {
-	if(((deplacement*)a)->value > ((deplacement*)b)->value) return -1;
-	if(((deplacement*)a)->value == ((deplacement*)b)->value) return 0;
-	if(((deplacement*)a)->value < ((deplacement*)b)->value) return 1;
+	if(((occdep*)a)->value > ((occdep*)b)->value) return -1;
+	if(((occdep*)a)->value == ((occdep*)b)->value) return 0;
+	if(((occdep*)a)->value < ((occdep*)b)->value) return 1;
+}
+
+int comparDep(const void* a, const void* b)
+{
+	if((long long int*)a < (long long int*)b) return -1;
+	if((long long int*)a == (long long int*)b) return 0;
+	if((long long int*)a > (long long int*)b) return 1;
+
 }
 
 int comparHuffmann(const void* a, const void* b)
@@ -81,7 +89,7 @@ int comparHuffmannPointers(const void* a, const void* b)
 	if((*(huffmann**)a)->occurences < (*(huffmann**)b)->occurences) return 1;
 }
 
-huffmann* deplacementsToHuffmannTree(deplacement* dep, unsigned long long int nbDep)
+huffmann* deplacementsToHuffmannTree(occdep* dep, unsigned long long int nbDep)
 {
 	huffmann* tree = NULL;
 	huffmann** nodes = malloc(sizeof(huffmann*)*nbDep);

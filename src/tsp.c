@@ -10,9 +10,83 @@
 #define DEPLISTINIT 20
 
 
+errorStatus getDeplacements(path* p)
+{
+	p->depList = malloc(sizeof(long long int)*(p->nbPoints-1)*2);
+	if(p->depList)
+	{
+		point* node = p->pointList;
+		unsigned long long int i=0;
+		while(node->next)
+		{
+			p->depList[i++] = node->next->x - node->x;
+			p->depList[i++] = node->next->y - node->y;
+			node = node->next;
+		}
+		p->nbDep=i;
+		qsort(p->depList, p->nbDep, sizeof(long long int), comparDep);
+		p->depListCapacity = (p->nbPoints-1)*2;
+		return NO_ERROR;
+	}else
+	{
+		return ALLOC_ERROR;
+	}
+}
+
 errorStatus getOccurences(path* p)
 {
-	deplacement* dep = calloc(DEPLISTINIT ,sizeof(deplacement));
+	if(p->depList && p->nbDep)
+	{
+		p->nbOccDep = 0;
+		if(!(p->occDepList))
+		{
+			p->occDepList = malloc(sizeof(occdep)*DEPLISTINIT);
+			p->occDepListCapacity = DEPLISTINIT;
+		}
+		if(p->occDepList)
+		{
+			long long int current = p->depList[0]+1;
+			for(unsigned long long int i=0; i < p->nbDep; ++i)
+			{
+				if(p->depList[i] != current)
+				{
+					if(p->nbOccDep == p->occDepListCapacity)
+					{
+						occdep* newList = realloc(p->occDepList, sizeof(occdep)*(p->occDepListCapacity+DEPLISTINIT));
+						if(newList)
+						{
+							p->occDepList = newList;
+							p->occDepListCapacity+=DEPLISTINIT;
+						}else
+						{
+							free(p->occDepList);
+							p->occDepList = NULL;
+							p->nbOccDep=0;
+							return ALLOC_ERROR;
+						}
+					}
+					current = p->depList[i];
+					p->occDepList[p->nbOccDep++].value = current;
+					p->occDepList[p->nbOccDep-1].occurences=1;
+				}else
+				{
+					p->occDepList[p->nbOccDep-1].occurences++;
+				}
+			}
+			return NO_ERROR;
+		}else
+		{
+			return ALLOC_ERROR;
+		}
+	}else
+	{
+		return UNKNOWN_ERROR;
+	}
+}
+/*
+errorStatus getOccurences(path* p)
+{
+	occdep* dep = calloc(DEPLISTINIT ,sizeof(occdep));
 	unsigned long long int capacity = DEPLISTINIT;
 	if(dep)
 	{
@@ -21,7 +95,7 @@ errorStatus getOccurences(path* p)
 		{
 			dep[0].value = node->next->x - node->x;
 			dep[0].occurences = 1;
-			p->nbDeplacements = 1;
+			p->nbOccDep = 1;
 			long long int value = node->next->y - node->y;
 			if(dep[0].value == value)
 			{
@@ -39,10 +113,10 @@ errorStatus getOccurences(path* p)
 					dep[0].value = value;
 					dep[0].occurences = 1;
 				}
-				p->nbDeplacements++;
+				p->nbOccDep++;
 			}
 			node = node->next;
-			if(p->nbDeplacements > 1)
+			if(p->nbOccDep > 1)
 				printf("%lld , %lld", dep[0].value, dep[1].value);
 			else
 				printf("%lld", dep[0].value);
@@ -53,20 +127,20 @@ errorStatus getOccurences(path* p)
 		while(node->next)
 		{
 			value = node->next->x - node->x;
-			found = BinarySearch(dep, value, p->nbDeplacements, &index);
+			found = BinarySearch(dep, value, p->nbOccDep, &index);
 			if(found)
 			{
 				dep[index].occurences++;
 			}else
 			{
-				if(p->nbDeplacements == capacity)
+				if(p->nbOccDep == capacity)
 				{
 
-					deplacement* newList =  realloc(dep, sizeof(deplacement) * (capacity + DEPLISTINIT));
+					occdep* newList =  realloc(dep, sizeof(occdep) * (capacity + DEPLISTINIT));
 					capacity += DEPLISTINIT;
 					if(!newList) {
 						free(dep);
-						p->nbDeplacements=0;
+						p->nbOccDep=0;
 						return ALLOC_ERROR;
 					}
 					dep = newList;
@@ -74,43 +148,33 @@ errorStatus getOccurences(path* p)
 				}
 				if(value < dep[index].value)
 				{
-					memmove(dep + index + 1, dep+index, (p->nbDeplacements-index)*sizeof(deplacement));
+					memmove(dep + index + 1, dep+index, (p->nbOccDep-index)*sizeof(occdep));
 					dep[index].value = value;
 					dep[index].occurences = 1;
 				}
 				else
 				{
-					memmove(dep + index + 2, dep+index+1, (p->nbDeplacements-index-1)*sizeof(deplacement));
+					memmove(dep + index + 2, dep+index+1, (p->nbOccDep-index-1)*sizeof(occdep));
 					dep[index+1].value = value;
 					dep[index+1].occurences = 1;
 				}
-				/*if(index == p->nbDeplacements-1)
-				{
-					dep[index+1].value = value;
-					dep[index+1].occurences=1;
-				} else
-				{
-					memmove(dep + index + 1, dep+index, (p->nbDeplacements-index)*sizeof(deplacement));
-					dep[index].value = value;
-					dep[index].occurences = 1;
-				}*/
-				p->nbDeplacements++;
+				p->nbOccDep++;
 			}
 			value = node->next->y - node->y;
-			found = BinarySearch(dep, value, p->nbDeplacements, &index);
+			found = BinarySearch(dep, value, p->nbOccDep, &index);
 			if(found)
 			{
 				dep[index].occurences++;
 			}else
 			{
-				if(p->nbDeplacements == capacity)
+				if(p->nbOccDep == capacity)
 				{
 
-					deplacement* newList =  realloc(dep, sizeof(deplacement) * (capacity + DEPLISTINIT));
+					occdep* newList =  realloc(dep, sizeof(occdep) * (capacity + DEPLISTINIT));
 					capacity += DEPLISTINIT;
 					if(!newList) {
 						free(dep);
-						p->nbDeplacements=0;
+						p->nbOccDep=0;
 						return ALLOC_ERROR;
 					}
 					dep = newList;
@@ -118,37 +182,37 @@ errorStatus getOccurences(path* p)
 				}
 				if(value < dep[index].value)
 				{
-					memmove(dep + index + 1, dep+index, (p->nbDeplacements-index)*sizeof(deplacement));
+					memmove(dep + index + 1, dep+index, (p->nbOccDep-index)*sizeof(occdep));
 					dep[index].value = value;
 					dep[index].occurences = 1;
 				}
 				else
 				{
-					memmove(dep + index + 2, dep+index+1, (p->nbDeplacements-index-1)*sizeof(deplacement));
+					memmove(dep + index + 2, dep+index+1, (p->nbOccDep-index-1)*sizeof(occdep));
 					dep[index+1].value = value;
 					dep[index+1].occurences = 1;
 				}
-				p->nbDeplacements++;
+				p->nbOccDep++;
 			}
 			node = node->next;
 		}
-		deplacement* list = realloc(dep, sizeof(deplacement)*p->nbDeplacements);
+		occdep* list = realloc(dep, sizeof(occdep)*p->nbOccDep);
 		if(!list) {
 			free(dep);
-			p->nbDeplacements=0;
+			p->nbOccDep=0;
 			return ALLOC_ERROR;
 		}
-		p->depList = list;
+		p->occDepList = list;
 		return NO_ERROR;
 	}
 
 	return ALLOC_ERROR;
 }
-
+ */
 errorStatus copyPath(path* dest, path* src)
 {
 	dest->method = src->method;
-	dest->nbDeplacements = src->nbDeplacements;
+	dest->nbOccDep = src->nbOccDep;
 	dest->nbPoints = src->nbPoints;
 	dest->pathLength = src->pathLength;
 
@@ -158,15 +222,15 @@ errorStatus copyPath(path* dest, path* src)
 		return ALLOC_ERROR;
 	}
 
-	dest->depList = malloc(sizeof(deplacement)* dest->nbDeplacements);
-	if(!(dest->depList))
+	dest->occDepList = malloc(sizeof(occdep)* dest->nbOccDep);
+	if(!(dest->occDepList))
 	{
 		free(dest->pointList);
 		return ALLOC_ERROR;
 	}
 
 	memcpy(dest->pointList, src->pointList, sizeof(point)*dest->nbPoints);
-	memcpy(dest->depList,src->depList,sizeof(deplacement)*dest->nbDeplacements);
+	memcpy(dest->occDepList,src->occDepList,sizeof(occdep)*dest->nbOccDep);
 	return NO_ERROR;
 
 }
@@ -174,15 +238,77 @@ errorStatus copyPath(path* dest, path* src)
 void freePath(path* p)
 {
 	free(p->pointList);
-	free(p->depList);
+	p->pointList=NULL;
 	p->nbPoints=0;
-	p->nbDeplacements=0;
+
+	free(p->depList);
+	p->depList=NULL;
+	p->nbDep=0;
+	p->depListCapacity=0;
+
+	free(p->occDepList);
+	p->occDepList=NULL;
+	p->occDepListCapacity=0;
+	p->nbOccDep=0;
+
+	p->pathLength=0;
 }
 
+errorStatus updateDeplacements(path* p, unsigned long long int index_a, unsigned long long int index_b)
+{
+	if(p && p->pointList && (index_a < p->nbPoints) && (index_b < p->nbPoints) && (index_a != index_b)) {
+		long long int olddep[] = {
+				p->pointList[index_a].next->x - p->pointList[index_a].x,
+				p->pointList[index_a].next->y - p->pointList[index_a].y,
+				p->pointList[index_b].next->x - p->pointList[index_b].x,
+				p->pointList[index_b].next->y - p->pointList[index_b].y
+		};
+
+		exchangePath(p->pointList, index_a, index_b);
+
+		long long int values[] = {
+				p->pointList[index_a].next->x - p->pointList[index_a].x,
+				p->pointList[index_a].next->y - p->pointList[index_a].y,
+				p->pointList[index_b].next->x - p->pointList[index_b].x,
+				p->pointList[index_b].next->y - p->pointList[index_b].y
+		};
+
+		if (p->depListCapacity - p->nbDep < 4) {
+			long long int *newList = realloc(p->depList, (p->depListCapacity + DEPLISTINIT) * sizeof(long long int));
+			if (newList) {
+				p->depList = newList;
+				p->depListCapacity += DEPLISTINIT;
+			} else {
+				exchangePath(p->pointList, index_a, index_b);
+				return ALLOC_ERROR;
+			}
+		}
+
+		memcpy(p->depList + p->nbDep, values, sizeof(long long int) * 4);
+		p->nbDep += 4;
+		qsort(p->depList, p->nbDep, sizeof(long long int), comparDep);
+
+		for (int i = 0; i < 4; ++i) {
+			long long int *found = bsearch(olddep + i, p->depList, p->nbDep, sizeof(long long int), comparDep);
+			if (found) {
+				memmove(found, found+1, (p->depList+p->nbDep)-found);
+				p->nbDep--;
+			} else {
+				return UNKNOWN_ERROR;
+			}
+		}
+		return NO_ERROR;
+	}else
+	{
+		return UNKNOWN_ERROR;
+	}
+}
+
+/*
 errorStatus updateDeplacements(path* p, unsigned long long int index_a, unsigned long long int index_b) {
 	if (p && (index_a < p->nbPoints) && (index_b < p->nbPoints) && (index_a != index_b)) {
 		unsigned long long int index;
-		deplacement olddep[4];
+		occdep olddep[4];
 		unsigned long long int nbOldDep = 0;
 		olddep[0].value = p->pointList[index_a].next->x - p->pointList[index_a].x;
 		olddep[0].occurences = 1;
@@ -193,7 +319,7 @@ errorStatus updateDeplacements(path* p, unsigned long long int index_a, unsigned
 		} else {
 			olddep[nbOldDep].value = value;
 			olddep[nbOldDep++].occurences = 1;
-			qsort(olddep, nbOldDep, sizeof(deplacement), comparDep);
+			qsort(olddep, nbOldDep, sizeof(occdep), comparOccValue);
 		}
 		value = p->pointList[index_b].next->x - p->pointList[index_b].x;
 		if (BinarySearch(olddep, value, nbOldDep, &index)) {
@@ -201,7 +327,7 @@ errorStatus updateDeplacements(path* p, unsigned long long int index_a, unsigned
 		} else {
 			olddep[nbOldDep].value = value;
 			olddep[nbOldDep++].occurences = 1;
-			qsort(olddep, nbOldDep, sizeof(deplacement), comparDep);
+			qsort(olddep, nbOldDep, sizeof(occdep), comparOccValue);
 		}
 		value = p->pointList[index_b].next->y - p->pointList[index_b].y;
 		if (BinarySearch(olddep, value, nbOldDep, &index)) {
@@ -209,7 +335,7 @@ errorStatus updateDeplacements(path* p, unsigned long long int index_a, unsigned
 		} else {
 			olddep[nbOldDep].value = value;
 			olddep[nbOldDep++].occurences = 1;
-			qsort(olddep, nbOldDep, sizeof(deplacement), comparDep);
+			qsort(olddep, nbOldDep, sizeof(occdep), comparOccValue);
 		}
 
 		exchangePath(p->pointList, index_a, index_b);
@@ -219,23 +345,23 @@ errorStatus updateDeplacements(path* p, unsigned long long int index_a, unsigned
 				p->pointList[index_b].next->x - p->pointList[index_b].x,
 				p->pointList[index_b].next->y - p->pointList[index_b].y
 		};
-		deplacement* dep = p->depList;
-		unsigned long long int capacity = p->nbDeplacements;
+		occdep* dep = p->occDepList;
+		unsigned long long int capacity = p->nbOccDep;
 		for(int i=0; i<4; i++)
 		{
-			if(BinarySearch(p->depList, values[i], p->nbDeplacements, &index))
+			if(BinarySearch(p->occDepList, values[i], p->nbOccDep, &index))
 			{
-				p->depList[index].occurences++;
+				p->occDepList[index].occurences++;
 			}else
 			{
-				if(p->nbDeplacements == capacity)
+				if(p->nbOccDep == capacity)
 				{
 
-					deplacement* newList =  realloc(dep, sizeof(deplacement) * (capacity + DEPLISTINIT));
+					occdep* newList =  realloc(dep, sizeof(occdep) * (capacity + DEPLISTINIT));
 					capacity += DEPLISTINIT;
 					if(!newList) {
 						free(dep);
-						p->nbDeplacements=0;
+						p->nbOccDep=0;
 						return ALLOC_ERROR;
 					}
 					dep = newList;
@@ -243,28 +369,28 @@ errorStatus updateDeplacements(path* p, unsigned long long int index_a, unsigned
 				}
 				if(value < dep[index].value)
 				{
-					memmove(dep + index + 1, dep+index, (p->nbDeplacements-index)*sizeof(deplacement));
+					memmove(dep + index + 1, dep+index, (p->nbOccDep-index)*sizeof(occdep));
 					dep[index].value = value;
 					dep[index].occurences = 1;
 				}
 				else
 				{
-					memmove(dep + index + 2, dep+index+1, (p->nbDeplacements-index-1)*sizeof(deplacement));
+					memmove(dep + index + 2, dep+index+1, (p->nbOccDep-index-1)*sizeof(occdep));
 					dep[index+1].value = value;
 					dep[index+1].occurences = 1;
 				}
-				p->nbDeplacements++;
+				p->nbOccDep++;
 			}
 		}
 		for(int i=0; i< nbOldDep; i++)
 		{
 			value = olddep[i].value;
-			if(BinarySearch(dep, value, p->nbDeplacements, &index))
+			if(BinarySearch(dep, value, p->nbOccDep, &index))
 			{
 				if(olddep[i].occurences >= dep[index].occurences)
 				{
-					memmove(dep+index, dep+index+1, (p->nbDeplacements - index-1)*sizeof(deplacement));
-					p->nbDeplacements--;
+					memmove(dep+index, dep+index+1, (p->nbOccDep - index-1)*sizeof(occdep));
+					p->nbOccDep--;
 				}else
 				{
 					dep[index].occurences -= olddep[i].occurences;
@@ -275,17 +401,18 @@ errorStatus updateDeplacements(path* p, unsigned long long int index_a, unsigned
 			}
 		}
 
-		deplacement* list = realloc(dep, sizeof(deplacement)*p->nbDeplacements);
+		occdep* list = realloc(dep, sizeof(occdep)*p->nbOccDep);
 		if(!list) {
 			return ALLOC_ERROR;
 		}
-		p->depList = list;
+		p->occDepList = list;
 
 		return NO_ERROR;
 	} else {
 		return UNKNOWN_ERROR;
 	}
 }
+ */
 errorStatus generateBestPath(analizedFile* file, path* p)
 {
 	long double temp = 10000;
@@ -360,7 +487,7 @@ unsigned long long int calculatePathLength(path* p, pathLengthCalcMethod method)
 		pathLength = (unsigned long long int)doublepath;
 	}else if(method == SPACE_OPTIMIZING)
 	{
-		huffmann* hufftree = deplacementsToHuffmannTree(p->depList, p->nbDeplacements);
+		huffmann* hufftree = deplacementsToHuffmannTree(p->occDepList, p->nbOccDep);
 		exploreHuffmann(hufftree, "", &pathLength);
 		freeHuffmannTree(hufftree);
 	}
@@ -454,7 +581,7 @@ errorStatus identifyFirstAndLast(analizedFile* file)
 errorStatus fileToPath(analizedFile* file, pathLengthCalcMethod method, path* p)
 {
 	p->pointList = NULL;
-	p->depList = NULL;
+	p->occDepList = NULL;
 	p->method = method;
 	p->pathLength = ULLONG_MAX;
 	if(file->status >= FILE_READ) {
